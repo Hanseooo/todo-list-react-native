@@ -1,7 +1,7 @@
 import { Modal, SafeAreaView, ScrollView, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { createStyles } from '../styles/mainStyles'
 import { useTheme } from "../context/themeContext";
-import { useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import Header from "../components/ui/header";
 import Navigation from "../components/ui/navigation";
 import Todo from "@/components/ui/todo";
@@ -13,6 +13,7 @@ const ACTIONS = {
   REMOVE_TODO: 'remove-todo',
   EDIT_TODO: 'edit-todo',
   COMPLETED_TODO: 'completed-todo',
+  UPDATE_INDEX: 'update-index',
 }
 const reducer = (state:Todo[], action: Action) => {
   switch (action.type) {
@@ -23,9 +24,10 @@ const reducer = (state:Todo[], action: Action) => {
       .map((todo, index) => ({ ...todo, index }))
     case ACTIONS.EDIT_TODO:
       return state.map(todo => todo.index === action.payload.index ? action.payload : todo)
-    case ACTIONS.COMPLETED_TODO: {
+    case ACTIONS.COMPLETED_TODO: 
       return state.map(todo => todo.index === action.payload.index ? action.payload.isCompleted = true : todo)
-    }
+    case ACTIONS.UPDATE_INDEX:
+      return state.map((todo, index) => ({...todo, index}))
     default: 
       return state
   }
@@ -38,7 +40,7 @@ type Action = {
 }
 
 type Todo = {
-  index: number,
+  index?: number,
   text: string,
   isCompleted: boolean
 }
@@ -49,7 +51,7 @@ export default function Index() {
 
   const [theme, setTheme] = useTheme()
   const [state, dispatch] = useReducer(reducer, initialTodo)
-  const [modalVisible, setModalVisibility] = useState(true)
+  const [modalVisible, setModalVisibility] = useState(false)
   const styles = createStyles(theme.themeColor)
   const windowHeight = useWindowDimensions().height
 
@@ -57,16 +59,24 @@ export default function Index() {
     setModalVisibility(visibility)
   }
 
+  const handleAddTask = (task:Todo) => {
+    dispatch({type: ACTIONS.ADD_TODO, payload: task})
+    dispatch({type: ACTIONS.UPDATE_INDEX})
+  }
+  useEffect(()=> {
+    state.forEach(task => console.log(`${task.text} ${task.index}`))
+  })
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <SafeAreaView style={styles.safeAreaContainer}>
         <View style = {[styles.mainContainer, {justifyContent: "space-between"}]}>
-          <Header modalVisible={modalVisible} handleModalVisibility={handleModalVisibility} />
+          <Header  modalVisible={modalVisible} handleModalVisibility={handleModalVisibility} />
           <View style={styles.contentContainer}>
-            <ActionModal modalVisible={modalVisible} handleModalVisibility={handleModalVisibility} />
+            <ActionModal handleAddTask = {handleAddTask} modalVisible={modalVisible} handleModalVisibility={handleModalVisibility} />
             <ScrollView contentContainerStyle={{height: windowHeight*0.7}}>
               {
-                state.map((todo, index) => (
+                state.map((todo) => (
                   !todo.isCompleted && <Todo text = {todo.text} key = {todo.index} />
                 ))
               }
