@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { useTheme } from '@/context/themeContext'
 import { createStyles } from '@/styles/mainStyles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -7,12 +7,16 @@ import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 type TodoProps = {
     text: string,
-
+    index: number,
+    modifyTask: (index:number, modification:string, text?:string) => void
 }
 
-export default function Todo({text} : TodoProps) {
+export default function Todo({text, index, modifyTask} : TodoProps) {
     const [theme, setTheme] = useTheme()
+    const [newText, setNewText] = useState('')
     const styles = createStyles(theme.themeColor,)
+
+    const handleNewText = (text:string) => setNewText(text)
 
   return (
     <View style={styles.todoContainer}>
@@ -23,10 +27,10 @@ export default function Todo({text} : TodoProps) {
             {text}
         </Text>
         <View style={{flexDirection: 'row', gap: 18, paddingHorizontal: 12}}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() =>modifyTask(index, 'edit')}>
             <FontAwesomeIcon icon={faPencil} style ={styles.iconColor} />
         </TouchableOpacity>
-        <TouchableOpacity >
+        <TouchableOpacity onPress={() => {modifyTask(index, 'delete')}}>
             <FontAwesomeIcon icon={faTrash} style ={styles.iconColor} />
         </TouchableOpacity>
         </View>

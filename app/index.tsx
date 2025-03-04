@@ -23,9 +23,9 @@ const reducer = (state:Todo[], action: Action) => {
       return state.filter(todo => todo.index !== action.payload)
       .map((todo, index) => ({ ...todo, index }))
     case ACTIONS.EDIT_TODO:
-      return state.map(todo => todo.index === action.payload.index ? action.payload : todo)
+      return state.map(todo => todo.index === action.payload.index ? action.payload.text : todo)
     case ACTIONS.COMPLETED_TODO: 
-      return state.map(todo => todo.index === action.payload.index ? action.payload.isCompleted = true : todo)
+      return state.map(todo => todo.index === action.payload ? action.payload.isCompleted = true : todo)
     case ACTIONS.UPDATE_INDEX:
       return state.map((todo, index) => ({...todo, index}))
     default: 
@@ -63,6 +63,25 @@ export default function Index() {
     dispatch({type: ACTIONS.ADD_TODO, payload: task})
     dispatch({type: ACTIONS.UPDATE_INDEX})
   }
+
+  const modifyTask = (index:number, modification: string, text?:string) => {
+    switch (modification) {
+      case 'edit':
+        const newTodo = {index: index, text: text}
+        dispatch({type: ACTIONS.EDIT_TODO, payload: newTodo})
+        break;
+      case 'delete':
+        dispatch({type: ACTIONS.REMOVE_TODO, payload: index})
+        break;
+      case 'completed':
+        dispatch({type: ACTIONS.COMPLETED_TODO, payload: index})
+        break;
+      default:
+        throw new Error("modifyTask invalid modification type")
+    }
+    dispatch({type: ACTIONS.UPDATE_INDEX})
+  }
+
   useEffect(()=> {
     state.forEach(task => console.log(`${task.text} ${task.index}`))
   })
@@ -73,11 +92,11 @@ export default function Index() {
         <View style = {[styles.mainContainer, {justifyContent: "space-between"}]}>
           <Header  modalVisible={modalVisible} handleModalVisibility={handleModalVisibility} />
           <View style={styles.contentContainer}>
-            <ActionModal handleAddTask = {handleAddTask} modalVisible={modalVisible} handleModalVisibility={handleModalVisibility} />
+            <ActionModal type={"add"} handleAddTask = {handleAddTask} modalVisible={modalVisible} handleModalVisibility={handleModalVisibility} />
             <ScrollView contentContainerStyle={{height: windowHeight*0.7}}>
               {
                 state.map((todo) => (
-                  !todo.isCompleted && <Todo text = {todo.text} key = {todo.index} />
+                  !todo.isCompleted && <Todo modifyTask = {modifyTask} index = {todo.index} text = {todo.text} key = {todo.index} />
                 ))
               }
             </ScrollView>
